@@ -17,7 +17,13 @@ vi.mock('./task.cache.ts', () => ({
 
 import { TaskModel } from './task.schema.ts';
 import * as taskCache from './task.cache.ts';
-import { getAllTasks, getTasksByStatus } from './task.service.ts';
+import {
+  getAllTasks,
+  getTasksByStatus,
+  createTask,
+  updateTask,
+  deleteTask,
+} from './task.service.ts';
 
 const userId = 'user-1';
 const docA = {
@@ -58,5 +64,29 @@ describe('getTasksByStatus derives from the cached list', () => {
     const result = await getTasksByStatus(userId, true);
     expect(result).toEqual([entityDone]);
     expect(TaskModel.find).not.toHaveBeenCalled();
+  });
+});
+
+describe('writes invalidate the user cache', () => {
+  it('createTask invalidates after a successful insert', async () => {
+    vi.mocked(TaskModel.create).mockResolvedValue({ toObject: () => docA } as never);
+    await createTask(userId, { title: 'A' } as never);
+    expect(taskCache.invalidate).toHaveBeenCalledWith(userId);
+  });
+
+  it('updateTask invalidates after a successful update', async () => {
+    vi.mocked(TaskModel.findOneAndUpdate).mockReturnValue({
+      lean: () => Promise.resolve(docA),
+    } as never);
+    await updateTask(userId, 't1', { title: 'B' } as never);
+    expect(taskCache.invalidate).toHaveBeenCalledWith(userId);
+  });
+
+  it('deleteTask invalidates after a successful delete', async () => {
+    vi.mocked(TaskModel.findOneAndDelete).mockReturnValue({
+      lean: () => Promise.resolve(docA),
+    } as never);
+    await deleteTask(userId, 't1');
+    expect(taskCache.invalidate).toHaveBeenCalledWith(userId);
   });
 });

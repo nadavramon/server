@@ -47,6 +47,7 @@ export async function createTask(userId: string, dto: CreateTaskBodyDto): Promis
   });
   const task = toTask(doc.toObject());
   logger.info(`Task created: id=${task.id}, title="${task.title}"`);
+  await taskCache.invalidate(userId);
   return task;
 }
 
@@ -61,6 +62,7 @@ export async function updateTask(
   if (!doc) throw new NotFoundError('Task not found');
 
   logger.info(`Task updated: id=${id}`);
+  await taskCache.invalidate(userId);
   return toTask(doc);
 }
 
@@ -69,4 +71,5 @@ export async function deleteTask(userId: string, id: string): Promise<void> {
   if (!doc) throw new NotFoundError('Task not found');
 
   logger.info(`Task deleted: id=${id}`);
+  await taskCache.invalidate(userId);
 }
