@@ -41,7 +41,7 @@ jobs:
 
       - name: Metadata (GHCR)
         id: meta-ghcr
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
@@ -51,7 +51,7 @@ jobs:
 
       - name: Metadata (ECR)
         id: meta-ecr
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ steps.ecr-login.outputs.registry }}/server
           tags: |
